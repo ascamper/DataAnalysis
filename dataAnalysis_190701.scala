@@ -1,117 +1,131 @@
-package com.pjw
+package com.gang
 
-import org.apache.spark
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
-object dataAnalysis_190701 {
+import oracle.net.aso.i
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.{Row, SQLContext}
+
+object ProjectWork {
   def main(args: Array[String]): Unit = {
-    // 1. data 불러와서 rdd 변환
-    var rawFile = "pro_promotion.csv"
+    val conf = new SparkConf().setAppName("DataFrame").
+      setMaster("local[4]")
+    var sc = new SparkContext(conf)
+    val spark = new SQLContext(sc)
+    import spark.implicits._
 
-    var pro_promotion =
+
+    var salesFile = "pro_actual_sales.csv"
+    var salesData =
       spark.read.format("csv").
         option("header", "true").
+        option("encoding", "ms949").
         option("Delimiter", ",").
-        load("c:/spark/bin/data/" + rawFile)
+        load("c:/spark/bin/data/data/" + salesFile)
 
-    var pro_promotion_rdd = pro_promotion.rdd
+    var maxYear = salesData.agg(max("year")).head.getString(0) // max(year) => 2016
 
-    //  데이터 불러온 후 컬럼 인덱싱 처리 한 번 해줘
-    var pp_columns = pro_promotion.columns
-    var pp_regionsegNo = pp_columns.indexOf("regionseg")
-    var pp_salesidNo = pp_columns.indexOf("salesid")
-    var pp_productgroupNo = pp_columns.indexOf("productgroup")
-    var pp_itemNo = pp_columns.indexOf("item")
-    var pp_targetweekNo = pp_columns.indexOf("targetweek")
-    var pp_planweekNo = pp_columns.indexOf("planweek")
-    var pp_map_priceNo = pp_columns.indexOf("map_price")
-    var pp_irNo = pp_columns.indexOf("ir")
-    var pp_pmapNo = pp_columns.indexOf("pmap")
-    var pp_pmap10No = pp_columns.indexOf("pmap10")
-    var pp_pro_percentNo = pp_columns.indexOf("pro_percent")
+    //DF데이터 필터(year == 2016) 후 rdd변환
+    var filterSalesData = salesData.filter($"year" === maxYear)
+    var filterSalesRdd = filterSalesData.rdd
 
+    var salesDataColumns = filterSalesData.columns
+    var regionSeg1No = salesDataColumns.indexOf("regionSeg1")
+    var productSeg2No = salesDataColumns.indexOf("productSeg2")
+    var regionSeg2No = salesDataColumns.indexOf("regionSeg2")
+    var regionSeg3No = salesDataColumns.indexOf("regionSeg3")
+    var productSeg3No = salesDataColumns.indexOf("productSeg3")
+    var yearweekNo = salesDataColumns.indexOf("yearweek")
+    var yearNo = salesDataColumns.indexOf("year")
+    var weekNo = salesDataColumns.indexOf("week")
+    var qtyNo = salesDataColumns.indexOf("qty")
 
-    // 2. planweek 기준 201601전에 있는 targetweek의 데이터를 전부 제거.
-    var filtered_pro_promotion_rdd = pro_promotion_rdd.filter(x => {
-     ((x.getString(pp_map_priceNo).toInt != 0) && (x.getString(pp_targetweekNo) >= x.getString(pp_planweekNo)))
-     })
-
-    filtered_pro_promotion_rdd.collect.foreach(println)
-
-    // 3. pro_actual_sales rdd 생성
-    var rawFile1 = "pro_actual_sales.csv"
-
-    var pro_actual_sales =
+    var promotionFile = "pro_promotion.csv"
+    var promotionData =
       spark.read.format("csv").
         option("header", "true").
+        option("encoding", "ms949").
         option("Delimiter", ",").
-        load("c:/spark/bin/data/" + rawFile1)
+        load("c:/spark/bin/data/data/" + promotionFile)
 
-    var pro_actual_sales_rdd = pro_actual_sales.rdd
+    var minYeaweek = promotionData.agg(min("planwee")).head.getString(0) // min(planwee) => 201601
+    var minPrice = promotionData.agg(min("map_price")).head.getString(0) // min(mapPrice) => 0
 
-    //  데이터 불러온 후 컬럼 인덱싱 처리 한 번 해줘
-    var pas_columns = pro_actual_sales.columns
-    var pas_regionSeg1No = pas_columns.indexOf("regionSeg1")
-    var pas_productSeg1No = pas_columns.indexOf("productSeg1")
-    var pas_productSeg2No = pas_columns.indexOf("productSeg2")
-    var pas_regionSeg2No = pas_columns.indexOf("regionSeg2")
-    var pas_regionSeg3No = pas_columns.indexOf("regionSeg3")
-    var pas_productSeg3No = pas_columns.indexOf("productSeg3")
-    var pas_yearweekNo = pas_columns.indexOf("yearweek")
-    var pas_yearNo = pas_columns.indexOf("year")
-    var pas_weekNo = pas_columns.indexOf("week")
-    var pas_qtyNo = pas_columns.indexOf("qty")
+    //DF데이터 필터(targetweek >= 201601, map_price > 0) 후 rdd변환
+    var filterPromotionData = promotionData.filter(($"targetweek" >= minYeaweek) && ($"map_price" > minPrice))
+    var filterPromotionRdd = filterPromotionData.rdd
 
-    // 4. rdd -> df
-    var filtered_pro_promotion = spark.createDataFrame(filtered_pro_promotion_rdd,
-      StructType(
-        Seq(
-         StructField("regionseg",StringType),
-         StructField("salesid",StringType),
-         StructField("productgroup",StringType),
-         StructField("item",StringType),
-         StructField("targetweek",StringType),
-         StructField("planweek",StringType),
-         StructField("map_price",StringType),
-         StructField("ir",StringType),
-         StructField("pmap",StringType),
-         StructField("pmap10",StringType),
-         StructField("pro_percent",StringType)
-        )))
+    var promotionDataColumns = filterPromotionData.columns
+    var productGroupNo = promotionDataColumns.indexOf("productgroup")
+    var itemNo = promotionDataColumns.indexOf("item")
+    var targetweekNo = promotionDataColumns.indexOf("targetweek")
+    var mapPriceNo = promotionDataColumns.indexOf("map_price")
+    var irNo = promotionDataColumns.indexOf("ir")
+    var pmapNo = promotionDataColumns.indexOf("pmap")
+    var pmap10No = promotionDataColumns.indexOf("pmap10")
+    var proPercentNo = promotionDataColumns.indexOf("pro_percent")
 
-    filtered_pro_promotion.
-      coalesce(1).
-      write.format("csv").
-      mode("overwrite").
-      option("header", "true").
-      save("c:/filtered_pro_promotion.csv")
+    // pro_actual_sales데이터와 조인 시 key로 잡을 productGroup, itemNo, targetweek로 그룹화하여
+    // mapPrice, ir, pmap, pmap10, pro_percent가 value로 나오도록 collectAsMap 수행
+    var promotionGroupRdd = filterPromotionRdd.groupBy(x => {
+      (x.getString(productGroupNo), x.getString(itemNo), x.getString(targetweekNo))
+    }).
+      map(x => {
+        var key = x._1
+        var data = x._2
+        var mapPrice = data.map(x => {
+          x.getString(mapPriceNo).toInt
+        }).toList(0)
+        var ir = data.map(x => {
+          x.getString(irNo).toInt
+        }).toList(0)
+        var pmap = data.map(x => {
+          x.getString(pmapNo).toInt
+        }).toList(0)
+        var pmap10 = data.map(x => {
+          x.getString(pmap10No).toInt
+        }).toList(0)
+        var pro_percent = data.map(x => {
+          x.getString(proPercentNo).toDouble
+        }).toList(0)
+        (key, (mapPrice, ir, pmap, pmap10, pro_percent))
+      }).collectAsMap
 
-    // 5. join with sql
-    filtered_pro_promotion.createOrReplaceTempView("filtered_pro_promotion")
-    pro_actual_sales.createOrReplaceTempView("pro_actual_sales")
+    //pro_actual_sales데이터와 promotionGroupRdd의 value 데이터를 합침
+    var finalResultRdd = filterSalesRdd.map(x => {
+      var regionSeg1 = x.getString(regionSeg1No)
+      var productSeg2 = x.getString(productSeg2No)
+      var regionSeg2 = x.getString(regionSeg2No)
+      var regionSeg3 = x.getString(regionSeg3No)
+      var productSeg3 = x.getString(productSeg3No)
+      var yearweek = x.getString(yearweekNo)
+      var year = x.getString(yearNo)
+      var week = x.getString(weekNo)
+      var qty = x.getString(qtyNo).toInt
+      var mapPrice = null.asInstanceOf[Int] //null 값의 type 지정가능
+      var ir = null.asInstanceOf[Int]       // 0(int), 0.0(double)으로 출력
+      var pmap = null.asInstanceOf[Int]
+      var pmap10 = null.asInstanceOf[Int]
+      var pro_percent = null.asInstanceOf[Double]
 
-    var joinResultDf = spark.sql(
-      """select
-        |    a.*,
-        |    b.qty
-        |from filtered_pro_promotion a
-        |left join pro_actual_sales b
-        |on a.regionseg = b.regionseg1
-        |and a.salesid = b.regionseg2
-        |and a.productgroup = b.productseg2
-        |and a.item = b.productseg3
-        |and a.TARGETWEEK = b.yearweek
-      """)
+      //null 값을 초기 값으로 지정하고 promotionGroupRdd의 key 값이 productSeg2, productSeg3, yearweek와 같은 경우
+      //promotionGroupRdd의 value 값을 각 변수에 넣음
+      if (promotionGroupRdd.contains(productSeg2, productSeg3, yearweek)) {
+        mapPrice = promotionGroupRdd(productSeg2, productSeg3, yearweek)._1.toInt
+        ir = promotionGroupRdd(productSeg2, productSeg3, yearweek)._2.toInt
+        pmap = promotionGroupRdd(productSeg2, productSeg3, yearweek)._3.toInt
+        pmap10 = promotionGroupRdd(productSeg2, productSeg3, yearweek)._4.toInt
+        pro_percent = promotionGroupRdd(productSeg2, productSeg3, yearweek)._5.toDouble
+      }
+      (regionSeg1, productSeg2, regionSeg2, regionSeg3, productSeg3, yearweek, year, week, qty,
+        mapPrice, ir, pmap, pmap10, pro_percent)
+    })
 
-    joinResultDf.fisrt
 
-    joinResultDf.
-      coalesce(1).
-      write.format("csv").
-      mode("overwrite").
-      option("header", "true").
-      save("c:/reftJoinResultDf.csv")
+    var finalResultDF = finalResultRdd.toDF("regionSeg1", "productSeg2", "regionSeg2", "regionSeg3", "productSeg3",
+      "yearweek", "year", "week", "qty", "mapPrice", "ir", "pmap", "pmap10", "pro_percent")
 
-    // 결론. 실패 : join을 반대로 하여 qty의 손실이 생김
+
   }
 }
