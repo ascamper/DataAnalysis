@@ -71,25 +71,14 @@ object ProjectWork {
     var promotionGroupRdd = filterPromotionRdd.groupBy(x => {
       (x.getString(productGroupNo), x.getString(itemNo), x.getString(targetweekNo))
     }).
-      map(x => {
+      flatMap(x => {
         var key = x._1
         var data = x._2
-        var mapPrice = data.map(x => {
-          x.getString(mapPriceNo).toInt
-        }).toList(0)
-        var ir = data.map(x => {
-          x.getString(irNo).toInt
-        }).toList(0)
-        var pmap = data.map(x => {
-          x.getString(pmapNo).toInt
-        }).toList(0)
-        var pmap10 = data.map(x => {
-          x.getString(pmap10No).toInt
-        }).toList(0)
-        var pro_percent = data.map(x => {
-          x.getString(proPercentNo).toDouble
-        }).toList(0)
-        (key, (mapPrice, ir, pmap, pmap10, pro_percent))
+        var result = data.map(x => {
+          (key, (x.getString(mapPriceNo).toInt, x.getString(irNo).toInt, x.getString(pmapNo),
+            x.getString(pmap10No), x.getString(proPercentNo)))
+        })
+        result
       }).collectAsMap
 
     //pro_actual_sales데이터와 promotionGroupRdd의 value 데이터를 합침
@@ -104,7 +93,7 @@ object ProjectWork {
       var week = x.getString(weekNo)
       var qty = x.getString(qtyNo).toInt
       var mapPrice = null.asInstanceOf[Int] //null 값의 type 지정가능
-      var ir = null.asInstanceOf[Int]       // 0(int), 0.0(double)으로 출력
+      var ir = null.asInstanceOf[Int] // 0(int), 0.0(double)으로 출력
       var pmap = null.asInstanceOf[Int]
       var pmap10 = null.asInstanceOf[Int]
       var pro_percent = null.asInstanceOf[Double]
