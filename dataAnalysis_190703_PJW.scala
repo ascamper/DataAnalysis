@@ -88,17 +88,15 @@ object dataAnalysis_190703_PJW {
     }
 
     //이동평균 매핑
-    var mavg_data_rdd = refined_join_data_rdd.groupBy( x => { (x.getString(refined_regionSeg1No), x.getString(refined_productSeg1No), x.getString(refined_productgroupNo), x.getString(refined_salesidNo), x.getString(refined_regionSeg3No), x.getString(refined_itemNo) )
+    var mavg_data_rdd = refined_join_data_rdd.groupBy( x => { (x.getString(refined_regionSeg1No), x.getString(refined_regionSeg3No), x.getString(refined_productgroupNo))
     }).flatMap( x => {
       var key = x._1
       var data = x._2
 
+      //(x.getString(refined_regionSeg1No), x.getString(refined_productSeg1No), x.getString(refined_productgroupNo), x.getString(refined_salesidNo), x.getString(refined_regionSeg3No), x.getString(refined_itemNo)
       var key1 = key._1
       var key2 = key._2
       var key3 = key._3
-      var key4 = key._4
-      var key5 = key._5
-      var key6 = key._6
 
       // 1. 이동평균범위 설정, sum, size 선언
       var avgRange = 5
@@ -117,8 +115,8 @@ object dataAnalysis_190703_PJW {
         var currentQty = x.getString(refined_qtyNo).toDouble
 
         for(i <- minRange to maxRange) {
-          if (searchQtyrdd.contains(key1, null, key3, key4, key5, key6, getWeek(currentYearweek,i))){
-            movingSum = movingSum + searchQtyrdd(key1, null, key3, key4, key5, key6, getWeek(currentYearweek,i)).toInt
+          if (searchQtyrdd.contains(key1, null, key3, x.getString(refined_salesidNo), key2, x.getString(refined_itemNo), getWeek(currentYearweek,i))){
+            movingSum = movingSum + searchQtyrdd(key1, null, key3, x.getString(refined_salesidNo), key2, x.getString(refined_itemNo), getWeek(currentYearweek,i)).toInt
             movingSize = movingSize + 1
           }
         }
@@ -127,16 +125,12 @@ object dataAnalysis_190703_PJW {
           movingAvg = movingSum / movingSize
         }
 
-        if(movingAvg != 0) {
-          seasonality = currentQty / movingAvg
-        }
-
         (key1,
-          key2,
+          x.getString(refined_productSeg1No),
           key3,
-          key4,
-          key5,
-          key6,
+          x.getString(refined_salesidNo),
+          key2,
+          x.getString(refined_itemNo),
           x.getString(refined_yearweekNo),
           x.getString(refined_map_priceNo),
           x.getString(refined_irNo),
@@ -145,15 +139,62 @@ object dataAnalysis_190703_PJW {
           x.getString(refined_pro_percentNo),
           x.getString(refined_qtyNo),
           x.getString(refined_promotionYN),
-          movingAvg.toString,
-          seasonality.toString
+          movingAvg.toString
         )
       })
-
       result
     })
 
-    var refinedDF = mavg_data_rdd.toDF("regionseg", "productseg1","productgroup","salesid","regionseg3","item"
+    var movingAvgDF = mavg_data_rdd.toDF("regionseg", "productseg1","productgroup","salesid","regionseg3","item"
+      ,"yearweek","map_price","ir","pmap","pmap10","pro_percent","qty","promotionNY","moving_avg")
+
+    var movingAvg_data_rdd = movingAvgDF.rdd
+
+    //이동평균 컬럼 인덱스 추가
+    var movingAvg_columns = movingAvgDF.columns
+    var movingAvgNo = movingAvg_columns.indexOf("moving_avg")
+
+    // 시즈널리티 계산
+    var seasonality_data_rdd = movingAvg_data_rdd.groupBy(x => {(x.getString(refined_regionSeg1No), x.getString(refined_regionSeg3No), x.getString(refined_productgroupNo) )
+    }).flatMap(x => {
+      var key = x._1
+      var data = x._2
+
+      var key1 = key._1
+      var key2 = key._2
+      var key3 = key._3
+
+      var result = data.map(x => {
+        var seasonality = 0.0d
+        var currentQty = x.getString(refined_qtyNo).toInt
+        var movingAvg = x.getString(movingAvgNo).toDouble
+
+        if(movingAvg != 0) {
+          seasonality = currentQty / movingAvg
+        }
+
+        (key1,
+          x.getString(refined_productSeg1No),
+          key3,
+          x.getString(refined_salesidNo),
+          key2,
+          x.getString(refined_itemNo),
+          x.getString(refined_yearweekNo),
+          x.getString(refined_map_priceNo),
+          x.getString(refined_irNo),
+          x.getString(refined_pmapNo),
+          x.getString(refined_pmap10No),
+          x.getString(refined_pro_percentNo),
+          x.getString(refined_qtyNo),
+          x.getString(refined_promotionYN),
+          x.getString(movingAvgNo),
+          seasonality
+        )
+      })
+      result
+    })
+
+    var refinedDF = seasonality_data_rdd.toDF("regionseg", "productseg1","productgroup","salesid","regionseg3","item"
       ,"yearweek","map_price","ir","pmap","pmap10","pro_percent","qty","promotionNY","moving_avg", "seasonality")
 
     refinedDF.

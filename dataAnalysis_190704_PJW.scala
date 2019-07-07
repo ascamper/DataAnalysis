@@ -42,7 +42,7 @@ object dataAnalysis_190704_PJW {
       return (currYear).toString() + "%02d".format((totalWeek))
     }
 
-    var csvFile = "seosonality_data.csv"
+    var csvFile = "seasonality_data_new_2.csv"
 
     var seasonality_data =
       spark.read.format("csv").
@@ -206,8 +206,7 @@ object dataAnalysis_190704_PJW {
       var groupMaxYearweek = yearweekArray.max
       var groupMaxYear = groupMaxYearweek.substring(0,4)
 
-      var groupCorrentYearweek = data.map(x =>{ x.getString(yearweekNo)}).head
-      var groupCorrentWeek = groupCorrentYearweek.substring(4)
+      //head가 문제
 
       var result = data.map( x => {
         var fcst = 0.0d
@@ -216,9 +215,12 @@ object dataAnalysis_190704_PJW {
         var avg_4_sum = 0.0d
         var avg_4_seasonality = 0.0d
         var avg_4_size = 4
-        var week_seasonality = 0.0d
+        var week_seasonality = x.getString(seasonalityNo).toDouble
         var week_seasonality_size = 0
         var time_series = 0.0d
+
+        var groupCorrentYearweek = x.getString(yearweekNo)
+        var groupCorrentWeek = groupCorrentYearweek.substring(4)
 
         if( x.getString(yearweekNo) > maxYearWeek) {
           // 1. fcst 컬럼 추가.
@@ -231,7 +233,7 @@ object dataAnalysis_190704_PJW {
           fcst = avg_4_sum / avg_4_size
           fcst_seasonality = avg_4_seasonality / avg_4_size
           // 3. 해당 주차의 평균 계절성지수를 구해주는 함수를 돌려 얻은 값을 seasonality에 넣어준다.
-          for (i <- groupMinYear.toInt to groupMaxYear.toInt) {
+          for (i <- groupMinYear.toInt to (groupMaxYear.toInt -1) ) {
             var tempYearweek = i.toString + groupCorrentWeek
 
             if (searchSeasonalityrdd.contains(key1, null, key3, key4, key5, key6, tempYearweek)) {
@@ -264,7 +266,7 @@ object dataAnalysis_190704_PJW {
           x.getString(qtyNo),
           x.getString(promotionYN),
           x.getString(moving_avgNo),
-          avg_4_seasonality,
+          week_seasonality,
           fcst,
           time_series)
       })
