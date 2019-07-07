@@ -3,7 +3,7 @@ package com.pjw
 import org.apache.spark
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
-object DataRefine {
+object dataAnalysis_190701 {
   def main(args: Array[String]): Unit = {
     // 1. data 불러와서 rdd 변환
     var rawFile = "pro_promotion.csv"
