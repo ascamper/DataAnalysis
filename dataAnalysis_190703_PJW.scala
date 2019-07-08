@@ -41,9 +41,15 @@ object dataAnalysis_190703_PJW {
       var data = x._2
 
       var qty = data.map (x => {
+<<<<<<< HEAD
         (key,x.getString(refined_qtyNo))
       })
       qty
+=======
+        x.getString(refined_qtyNo)
+      })
+      (key,qty.head)
+>>>>>>> dd4217275a604f05894f477f15438d218b3565e1
     }).collectAsMap
 
     //boealean
