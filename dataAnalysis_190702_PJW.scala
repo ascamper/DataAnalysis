@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 import org.apache.parquet.format.IntType
-import org.apache.spark
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
 
@@ -256,8 +255,8 @@ object dataAnalysis_190702_PJW {
         key._5,
         key._6,
        x.getString(join_yearweekNo),
-       x.getInt(join_map_priceNo),
-       x.getInt(join_irNo),
+       x.getInt(join_map_priceNo).toString,
+       x.getInt(join_irNo).toString,
        x.getDouble(join_pmapNo),
        x.getDouble(join_pmap10No),
        x.getDouble(join_pro_percentNo),
@@ -268,8 +267,7 @@ object dataAnalysis_190702_PJW {
       var resultMap = newWeekMap ++ origin
 
       resultMap
-    }).sortBy(x => (x.getString(join_regionSeg1No), x.getString(join_productSeg1No), x.getString(join_productgroupNo), x.getString(join_salesidNo)
-                    , x.getString(join_regionSeg3No), x.getString(join_itemNo))
+    }).sortBy(x => (x._1,x._3,x._4,x._5,x._6))
 
     filled_joinResultDf_rdd.collect.foreach(println)
     // 총 카운트 : 189717
@@ -285,29 +283,26 @@ object dataAnalysis_190702_PJW {
       save("c:/joinedDF.csv")
 
     // promotionYN 추가
-    var refinedDF_rdd = filled_joinResultDf_rdd.flatMap( x=> {
+    var refinedDF_rdd = filled_joinResultDf_rdd.map( x => {
 
       var promotionNY = "Y"
 
-      if(x.getString(join_pro_percentNo) == 0){
+      if(x._12 == 0) {
         promotionNY = "N"
-        ( x.getString(join_regionSeg1No),
-          x.getString(join_productgroupNo),
-          x.getString(join_salesidNo),
-          x.getString(join_regionSeg3No),
-          x.getString(join_itemNo),
-          x.getString(join_yearweekNo),
-          x.getString(join_map_priceNo),
-          x.getString(join_irNo),
-          x.getString(join_pmapNo),
-          x.getString(join_pmap10No),
-          x.getDouble(join_pro_percentNo),
-          x.getString(join_qtyNo),
-          promotionNY
-        )
       }
+      (x._1, x._2, x._3, x._4, x._5, x._6, x._7, x._8, x._9.toString, x._10.toString, x._11.toString, x._12.toString, x._13, promotionNY)
     })
 
+    //테스트를 위해 추출
+    var refinedDF = refinedDF_rdd.toDF("regionseg", "productseg1","productgroup","salesid","regionseg3","item"
+      ,"yearweek","map_price","ir","pmap","pmap10","pro_percent","qty","promotionNY")
+
+    refinedDF.
+      coalesce(1).
+      write.format("csv").
+      mode("overwrite").
+      option("header", "true").
+      save("c:/refinedDF.csv")
 
   }
 }

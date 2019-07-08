@@ -92,15 +92,15 @@ object dataAnalysis_190701 {
 
     var joinResultDf = spark.sql(
       """select
-        |    a.*,
-        |    b.qty
-        |from filtered_pro_promotion a
-        |left join pro_actual_sales b
-        |on a.regionseg = b.regionseg1
-        |and a.salesid = b.regionseg2
-        |and a.productgroup = b.productseg2
-        |and a.item = b.productseg3
-        |and a.TARGETWEEK = b.yearweek
+        |    b.*,
+        |    a.qty
+        |from  pro_actual_sales a
+        |left join filtered_pro_promotion b
+        |on a.regionseg1 = b.regionseg
+        |and a.regionseg2 = b.salesid
+        |and a.productseg2 = b.productgroup
+        |and a.productseg3 = b.item
+        |and a.yearweek = b.targetweek
       """)
 
     joinResultDf.fisrt
