@@ -1,0 +1,44 @@
+@charset "UTF-8";
+
+#nav {
+	display: block;
+	width: 100%;
+	margin: 4px;
+	padding: 4px;
+	background-color: #ddd;
+}
+
+.section {
+	float: left;
+	width: 50%;
+	height: 400px;
+	margin: 4px;
+	background-color: #ddd;
+}
+
+#aside {
+	float: left;
+	width: 200px;
+	height: 400px;
+	margin: 4px;
+	background-color: #ddd;
+}
+
+table {
+	width: 100%;
+}
+
+th {
+	background: #eee;
+	padding: 5px;
+}
+
+td {
+	text-align: center;
+	padding: 5px;
+}
+
+th, td {
+	border: 1px solid #eee;
+}
+

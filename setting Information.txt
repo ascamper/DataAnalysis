@@ -1,0 +1,17 @@
+web service : java spring
+data analysis : spark 
+
+데이터 분석 모델 jar 파일 및 sh파일 위치 :
+ip & port : 192.168.110.117:22 
+pah : /home/hadoop/group4_2019
+
+데이터베이스 테이블 위치 :
+ip & port : 192.168.110.112 : 1521
+service name : orcl
+id : kopo
+pw : kopo
+
+tabels :
+common_group4
+common_group4_new
+parameter_group4

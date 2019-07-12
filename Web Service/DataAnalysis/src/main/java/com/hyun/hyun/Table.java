@@ -1,0 +1,110 @@
+package com.hyun.hyun;
+
+public class Table {
+	public String regionseg;
+	public String regionseg3;
+	public String salesid;
+	public String productgroup;
+	public String item;
+	public String yearweek;
+//	public String year;
+//	public String week;
+	public String map_price;
+	public String ir;
+	public String pmap;
+	public String pmap10;
+	public String pro_percent;
+	public String qty;
+	public String promotionNY;
+	public String moving_avg;
+	public String seasonality;
+	public String fcst;
+	public String time_series;
+	
+	Table() {
+	}
+	Table(String regionseg, String regionseg3, String salesid, String productgroup, String item, String yearweek,  String map_price, String ir, String pmap, String pmap10, String pro_percent, String qty, String promotionNY, String moving_avg, String seasonality,String fcst, String time_series) {
+		this.regionseg = regionseg;
+		this.regionseg3 = regionseg3;
+		this.salesid = salesid;
+		this.productgroup = productgroup;
+		this.item = item;
+		this.yearweek = yearweek;
+//		this.year = year;
+//		this.week = week;
+		this.map_price = map_price;
+		this.ir = ir;
+		this.pmap = pmap;
+		this.pmap10 = pmap10;
+		this.pro_percent = pro_percent;
+		this.qty = qty;
+		this.promotionNY = promotionNY;
+		this.moving_avg = moving_avg;
+		this.seasonality = seasonality;
+		this.fcst = fcst;
+		this.time_series = time_series;
+	}
+	public String toTableTagString() {
+		String tagString = "";
+		tagString = tagString + "<tr>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.regionseg;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.regionseg3;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.salesid;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.productgroup;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.item;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.yearweek;
+		tagString = tagString + "</td>";
+//		tagString = tagString + "<td>";
+//		tagString = tagString + this.year;
+//		tagString = tagString + "</td>";
+//		tagString = tagString + "<td>";
+//		tagString = tagString + this.week;
+//		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.map_price;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.ir;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.pmap;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.pmap10;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.pro_percent;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.qty;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.promotionNY;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.moving_avg;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.seasonality;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.fcst;
+		tagString = tagString + "</td>";
+		tagString = tagString + "<td>";
+		tagString = tagString + this.time_series;
+		tagString = tagString + "</td>";
+		tagString = tagString + "</tr>";
+		return tagString;
+	}
+}
